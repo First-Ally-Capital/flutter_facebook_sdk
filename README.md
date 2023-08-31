@@ -1,5 +1,11 @@
 # Facebook Sdk For Flutter
 
+
+
+# Maintained for First Ally Capital by - Erondu Emmanuel 
+
+
+
 ![GitHub code size](https://img.shields.io/github/languages/code-size/saadfarhan124/sadfarhan124-facebook_flutter_plugin)
 ![GitHub followers](https://img.shields.io/github/followers/saadfarhan124?style=social)
 ![GitHub contributors](https://img.shields.io/github/contributors/saadfarhan124/sadfarhan124-facebook_flutter_plugin)
