@@ -24,35 +24,22 @@ import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.lang.NullPointerException
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.log
 
 
 /** FlutterFacebookSdkPlugin */
 class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, ActivityAware, PluginRegistry.NewIntentListener {
-    /// The MethodChannel that will the communication between Flutter and native Android
-    ///
-    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-    /// when the Flutter Engine is detached from the Activity
-
     private lateinit var registrar: Registrar
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
     private lateinit var logger: AppEventsLogger
 
-
     private var deepLinkUrl: String = "Saad Farhan"
-    private var PLATFORM_CHANNEL: String = "flutter_facebook_sdk/methodChannel"
-    private var EVENTS_CHANNEL: String = "flutter_facebook_sdk/eventChannel"
+    private val PLATFORM_CHANNEL: String = "flutter_facebook_sdk/methodChannel"
+    private val EVENTS_CHANNEL: String = "flutter_facebook_sdk/eventChannel"
     private var queuedLinks: List<String> = emptyList()
     private var eventSink: EventSink? = null
     private var context: Context? = null
     private var activityPluginBinding: ActivityPluginBinding? = null
-
-    //  fun registerWith(registrar: Registrar) {
-    //    val plugin = FlutterFacebookSdkPlugin()
-    //    methodChannel = MethodChannel(registrar.messenger(), PLATFORM_CHANNEL)
-    //    methodChannel.setMethodCallHandler(this)
-    //  }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, PLATFORM_CHANNEL)
@@ -63,7 +50,6 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
 
         context = flutterPluginBinding.applicationContext
     }
-
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
@@ -80,7 +66,6 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
@@ -89,36 +74,69 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
             }
             "logViewedContent", "logAddToCart", "logAddToWishlist" -> {
                 val args = call.arguments as HashMap<String, Any>
-                logEvent(args["contentType"].toString(), args["contentData"].toString(), args["contentId"].toString(), args["currency"].toString(), args["price"].toString().toDouble(), call.method)
+                logEvent(
+                    args["contentType"].toString(),
+                    args["contentData"].toString(),
+                    args["contentId"].toString(),
+                    args["currency"].toString(),
+                    args["price"].toString().toDouble(),
+                    call.method
+                )
+                result.success(true)
             }
             "activateApp" -> {
                 logger.logEvent(AppEventsConstants.EVENT_NAME_ACTIVATED_APP)
+                result.success(true)
             }
             "logCompleteRegistration" -> {
                 val args = call.arguments as HashMap<String, Any>
                 val params = Bundle()
                 params.putString(AppEventsConstants.EVENT_PARAM_REGISTRATION_METHOD, args["registrationMethod"].toString())
                 logger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION, params)
+                result.success(true)
             }
             "logPurchase" -> {
                 val args = call.arguments as HashMap<String, Any>
-                logPurchase(args["amount"].toString().toDouble(), args["currency"].toString(), args["parameters"] as HashMap<String, String>)
+                logPurchase(
+                    args["amount"].toString().toDouble(),
+                    args["currency"].toString(),
+                    args["parameters"] as HashMap<String, String>
+                )
+                result.success(true)
             }
             "logSearch" -> {
                 val args = call.arguments as HashMap<String, Any>
-                logSearchEvent(args["contentType"].toString(), args["contentData"].toString(), args["contentId"].toString(), args["searchString"].toString(), args["success"].toString().toBoolean())
+                logSearchEvent(
+                    args["contentType"].toString(),
+                    args["contentData"].toString(),
+                    args["contentId"].toString(),
+                    args["searchString"].toString(),
+                    args["success"].toString().toBoolean()
+                )
+                result.success(true)
             }
             "logInitiateCheckout" -> {
                 val args = call.arguments as HashMap<String, Any>
-                logInitiateCheckoutEvent(args["contentData"].toString(), args["contentId"].toString(), args["contentType"].toString(), args["numItems"].toString().toInt(), args["paymentInfoAvailable"].toString().toBoolean(), args["currency"].toString(), args["totalPrice"].toString().toDouble())
+                logInitiateCheckoutEvent(
+                    args["contentData"].toString(),
+                    args["contentId"].toString(),
+                    args["contentType"].toString(),
+                    args["numItems"].toString().toInt(),
+                    args["paymentInfoAvailable"].toString().toBoolean(),
+                    args["currency"].toString(),
+                    args["totalPrice"].toString().toDouble()
+                )
+                result.success(true)
             }
             "logEvent" -> {
                 val args = call.arguments as HashMap<String, Any>
                 logGenericEvent(args)
+                result.success(true)
             }
-            "setUserData" ->{
+            "setUserData" -> {
                 val args = call.arguments as HashMap<String, Any>
                 setUserData(args)
+                result.success(true)
             }
             else -> {
                 result.notImplemented()
@@ -126,7 +144,7 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         }
     }
 
-    private fun setUserData(args:HashMap<String,Any>){
+    private fun setUserData(args: HashMap<String, Any>) {
         val email = args["email"] as? String
         val lastName = args["lastName"] as? String
         val firstName = args["firstName"] as? String
@@ -136,30 +154,35 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         val city = args["city"] as? String
         val country = args["country"] as? String
         val state = args["state"] as? String
-        var zip = args['zip'] as? String
+        val zip = args["zip"] as? String
         val parameterBundle = createBundleFromMap(args)
 
         logger.setUserData(parameterBundle)
     }
 
-    private fun logGenericEvent(args : HashMap<String, Any>){
+    private fun logGenericEvent(args: HashMap<String, Any>) {
         val eventName = args["eventName"] as? String
         val valueToSum = args["valueToSum"] as? Double
         val parameters = args["parameters"] as? HashMap<String, Any>
-        if (valueToSum != null && parameters != null) {
-            val parameterBundle = createBundleFromMap(args["parameters"] as HashMap<String, Any>)
+
+        val parameterBundle = createBundleFromMap(parameters)
+
+        if (valueToSum != null) {
             logger.logEvent(eventName, valueToSum, parameterBundle)
-        }else if(parameters != null){
-            val parameterBundle = createBundleFromMap(args["parameters"] as HashMap<String, Any>)
+        } else {
             logger.logEvent(eventName, parameterBundle)
-        }else if(valueToSum != null){
-            logger.logEvent(eventName, valueToSum)
-        }else{
-            logger.logEvent(eventName)
         }
     }
 
-    private fun logInitiateCheckoutEvent(contentData: String?, contentId: String?, contentType: String?, numItems: Int, paymentInfoAvailable: Boolean, currency: String?, totalPrice: Double) {
+    private fun logInitiateCheckoutEvent(
+        contentData: String?,
+        contentId: String?,
+        contentType: String?,
+        numItems: Int,
+        paymentInfoAvailable: Boolean,
+        currency: String?,
+        totalPrice: Double
+    ) {
         val params = Bundle()
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT, contentData)
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT_ID, contentId)
@@ -170,7 +193,13 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         logger.logEvent(AppEventsConstants.EVENT_NAME_INITIATED_CHECKOUT, totalPrice, params)
     }
 
-    private fun logSearchEvent(contentType: String, contentData: String, contentId: String, searchString: String, success: Boolean) {
+    private fun logSearchEvent(
+        contentType: String,
+        contentData: String,
+        contentId: String,
+        searchString: String,
+        success: Boolean
+    ) {
         val params = Bundle()
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT_TYPE, contentType)
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT, contentData)
@@ -180,7 +209,14 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         logger.logEvent(AppEventsConstants.EVENT_NAME_SEARCHED, params)
     }
 
-    private fun logEvent(contentType: String, contentData: String, contentId: String, currency: String, price: Double, type: String) {
+    private fun logEvent(
+        contentType: String,
+        contentData: String,
+        contentId: String,
+        currency: String,
+        price: Double,
+        type: String
+    ) {
         val params = Bundle()
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT_TYPE, contentType)
         params.putString(AppEventsConstants.EVENT_PARAM_CONTENT, contentData)
@@ -211,17 +247,13 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         val targetUri = AppLinks.getTargetUrlFromInboundIntent(context, activityPluginBinding!!.activity.intent)
         AppLinkData.fetchDeferredAppLinkData(context, object : AppLinkData.CompletionHandler {
             override fun onDeferredAppLinkDataFetched(appLinkData: AppLinkData?) {
-
-                if (appLinkData == null) {
-                    return;
-                }
-
-                deepLinkUrl = appLinkData.targetUri.toString();
-                if (eventSink != null && deepLinkUrl != null) {
-                    eventSink!!.success(deepLinkUrl)
+                if (appLinkData != null) {
+                    deepLinkUrl = appLinkData.targetUri.toString()
+                    if (eventSink != null && deepLinkUrl != null) {
+                        eventSink!!.success(deepLinkUrl)
+                    }
                 }
             }
-
         })
     }
 
@@ -234,35 +266,30 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         for (jsonParam in parameterMap.entries) {
             val value = jsonParam.value
             val key = jsonParam.key
-            if (value is String) {
-                bundle.putString(key, value as String)
-            } else if (value is Int) {
-                bundle.putInt(key, value as Int)
-            } else if (value is Long) {
-                bundle.putLong(key, value as Long)
-            } else if (value is Double) {
-                bundle.putDouble(key, value as Double)
-            } else if (value is Boolean) {
-                bundle.putBoolean(key, value as Boolean)
-            } else if (value is Map<*, *>) {
-                val nestedBundle = createBundleFromMap(value as Map<String, Any>)
-                bundle.putBundle(key, nestedBundle as Bundle)
-            } else {
-                throw IllegalArgumentException(
-                        "Unsupported value type: " + value.javaClass.kotlin)
+            when (value) {
+                is String -> bundle.putString(key, value)
+                is Int -> bundle.putInt(key, value)
+                is Long -> bundle.putLong(key, value)
+                is Double -> bundle.putDouble(key, value)
+                is Boolean -> bundle.putBoolean(key, value)
+                is Map<*, *> -> {
+                    val nestedBundle = createBundleFromMap(value as Map<String, Any>)
+                    bundle.putBundle(key, nestedBundle)
+                }
+                else -> throw IllegalArgumentException("Unsupported value type: ${value.javaClass.kotlin}")
             }
         }
         return bundle
     }
 
     override fun onDetachedFromActivity() {
-
+        // Implement if needed.
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activityPluginBinding!!.removeOnNewIntentListener(this);
-        activityPluginBinding = binding;
-        binding.addOnNewIntentListener(this);
+        activityPluginBinding!!.removeOnNewIntentListener(this)
+        activityPluginBinding = binding
+        binding.addOnNewIntentListener(this)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -272,21 +299,16 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-
+        // Implement if needed.
     }
 
     override fun onNewIntent(intent: Intent): Boolean {
         try {
-            // some code
             deepLinkUrl = AppLinks.getTargetUrl(intent).toString()
-            eventSink!!.success(deepLinkUrl)
+            eventSink?.success(deepLinkUrl)
         } catch (e: NullPointerException) {
-            // handler
             return false
         }
-
-
-
         return false
     }
 }
