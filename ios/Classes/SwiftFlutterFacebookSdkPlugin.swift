@@ -266,6 +266,37 @@ public class SwiftFlutterFacebookSdkPlugin: NSObject, FlutterPlugin, FlutterStre
                 result(true)
                 return
             }
+
+        case "setUserData":
+            guard let args = call.arguments else {
+                result(false)
+                return
+            }
+             if let myArgs = args as? [String: Any],
+                let email = args["email"] as? String
+                let lastName = args["lastName"] as? String
+                let firstName = args["firstName"] as? String
+                let phone = args["phone"] as? String
+                let dateOfBirth = args["dateOfBirth"] as? String
+                let gender = args["gender"] as? String
+                let city = args["city"] as? String
+                let country = args["country"] as? String
+                let state = args["state"] as? String
+                let zip = args['zip'] as? String
+                {
+                AppEvents.setUserData(email, forType: AppEvents.UserDataType.email.rawValue)
+                AppEvents.setUserData(firstName, forType: AppEvents.UserDataType.firstName.rawValue)
+                AppEvents.setUserData(lastName, forType: AppEvents.UserDataType.lastName.rawValue)
+                AppEvents.setUserData(phone, forType: AppEvents.UserDataType.phone.rawValue)
+                AppEvents.setUserData(dateOfBirth, forType: AppEvents.UserDataType.dateOfBirth.rawValue)
+                AppEvents.setUserData(gender, forType: AppEvents.UserDataType.gender.rawValue)
+                AppEvents.setUserData(city, forType: AppEvents.UserDataType.city.rawValue)
+                AppEvents.setUserData(zip, forType: AppEvents.UserDataType.zip.rawValue)
+                AppEvents.setUserData(country, forType: AppEvents.UserDataType.country.rawValue)
+                result(true)
+                return
+            }
+
         case "setAdvertiserTracking":
             guard let args = call.arguments else {
                 result(false)
