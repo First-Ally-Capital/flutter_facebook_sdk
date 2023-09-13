@@ -282,7 +282,7 @@ public class SwiftFlutterFacebookSdkPlugin: NSObject, FlutterPlugin, FlutterStre
                 let city = args["city"] as? String
                 let country = args["country"] as? String
                 let state = args["state"] as? String
-                let zip = args['zip'] as? String
+                let zip = args["zip"] as? String
                 {
                 AppEvents.setUserData(email, forType: AppEvents.UserDataType.email.rawValue)
                 AppEvents.setUserData(firstName, forType: AppEvents.UserDataType.firstName.rawValue)
