@@ -137,18 +137,9 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
         val country = args["country"] as? String
         val state = args["state"] as? String
         var zip = args['zip'] as? String
+        val parameterBundle = createBundleFromMap(args)
 
-        logger.setUserData(
-            email,
-            lastName,
-            firstName,
-            phone,
-            dateOfBirth,gender,
-            city,
-            country,
-            state,
-            zip,
-        )
+        logger.setUserData(parameterBundle)
     }
 
     private fun logGenericEvent(args : HashMap<String, Any>){
