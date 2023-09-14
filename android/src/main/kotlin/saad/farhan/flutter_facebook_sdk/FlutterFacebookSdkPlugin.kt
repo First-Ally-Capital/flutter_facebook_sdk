@@ -116,40 +116,12 @@ class FlutterFacebookSdkPlugin : FlutterPlugin, MethodCallHandler, StreamHandler
                 val args = call.arguments as HashMap<String, Any>
                 logGenericEvent(args)
             }
-            "setUserData" ->{
-                val args = call.arguments as HashMap<String, Any>
-                setUserData(args)
-            }
             else -> {
                 result.notImplemented()
             }
         }
     }
 
-    private fun setUserData(args:HashMap<String,Any>){
-        val email = args["email"] as? String
-        val lastName = args["lastName"] as? String
-        val firstName = args["firstName"] as? String
-        val phone = args["phone"] as? String
-        val dateOfBirth = args["dateOfBirth"] as? String
-        val gender = args["gender"] as? String
-        val city = args["city"] as? String
-        val country = args["country"] as? String
-        val state = args["state"] as? String
-        var zip = args['zip'] as? String
-
-        logger.setUserData(
-            email,
-            lastName,
-            firstName,
-            phone,
-            dateOfBirth,gender,
-            city,
-            country,
-            state,
-            zip,
-        )
-    }
 
     private fun logGenericEvent(args : HashMap<String, Any>){
         val eventName = args["eventName"] as? String
