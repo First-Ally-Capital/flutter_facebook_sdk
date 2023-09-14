@@ -59,11 +59,6 @@ class FlutterFacebookSdk {
     return true;
   }
 
-  /// Clears the current user data
-  Future<void> clearUserData() {
-    return _channel.invokeMethod<void>('clearUserData');
-  }
-
   /// Logs View Content Event of FBSDK with [currency] and [price]
   Future<bool> logViewedContent(
       {required String contentType,
