@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 /// A singleton class for plugin
-/// so that multiple streams dont open up
+/// so that multiple streams dont open up.
 
 class FlutterFacebookSdk {
   static final FlutterFacebookSdk? _singleton = FlutterFacebookSdk._internal();
